@@ -143,16 +143,45 @@
         }
 
         function downloadPDF() {
-            html2canvas(document.querySelector("#captureArea"), { scale: 2 }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                const doc = new jspdf.jsPDF('l', 'mm', 'a4');
-                const width = doc.internal.pageSize.getWidth();
-                const height = (canvas.height * width) / canvas.width;
-                doc.addImage(imgData, 'PNG', 0, 0, width, height);
-                doc.save("Mirror_Canvas.pdf");
-            });
-        }
+    const { jsPDF } = window.jspdf;
+    const element = document.querySelector("#captureArea");
+    
+    // showLoader(true); // Optional: show loader while generating
+
+    // html2canvas captures the full element regardless of screen scroll
+    html2canvas(element, { 
+        scale: 2, // Higher scale for better text clarity
+        useCORS: true,
+        logging: false,
+        windowWidth: element.scrollWidth, // Forces capture of the full horizontal width
+        windowHeight: element.scrollHeight
+    }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        
+        // 'l' = landscape, 'mm' = millimeters, 'a3' = A3 size
+        const doc = new jsPDF('l', 'mm', 'a3');
+        
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        
+        // Calculate dimensions to fit the full width of A3
+        const imgWidth = pageWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        // If the height exceeds one page, it will scale to fit width
+        doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        
+        const fileName = document.getElementById('companyInput').value || "Mirror_Canvas";
+        doc.save(`${fileName}_Mirror_Canvas_A3.pdf`);
+        
+        // showLoader(false);
+    }).catch(err => {
+        console.error("PDF Export Error:", err);
+        // showLoader(false);
+    });
+}
     </script>
 </body>
 </html>
+
 
