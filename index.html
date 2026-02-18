@@ -2,60 +2,69 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Mirror Sales Canvas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        .canvas-col { min-width: 350px; }
-        .hidden-section { display: none; }
-        .loader { border-top-color: #3498db; animation: spinner 1.5s linear infinite; }
+        .canvas-col { min-width: 380px; }
+        .loader { border-top-color: #3b82f6; animation: spinner 1s linear infinite; }
         @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #loaderOverlay { display: none !important; }
+        .is-loading #loaderOverlay { display: flex !important; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen font-sans">
+<body class="bg-slate-100 min-h-screen font-sans">
 
-    <div id="loaderOverlay" class="hidden-section fixed inset-0 bg-white/80 z-50 flex flex-col items-center justify-center">
-        <div class="loader w-12 h-12 border-4 border-slate-200 rounded-full mb-4"></div>
-        <p class="font-bold text-slate-700">Saving to Strategy Cloud...</p>
+    <div id="loaderOverlay" class="fixed inset-0 bg-white/90 z-[100] flex-col items-center justify-center">
+        <div class="loader w-16 h-16 border-4 border-slate-200 rounded-full mb-4"></div>
+        <p class="font-bold text-slate-800 text-lg">Updating Strategy Cloud...</p>
     </div>
 
-    <div id="landingPage" class="flex flex-col items-center justify-center min-h-screen">
-        <div class="bg-white p-10 rounded-2xl shadow-xl border w-full max-w-md text-center">
-            <h1 class="text-3xl font-bold mb-6 text-slate-800">The Mirror Sales Canvas</h1>
-            <input type="text" id="companyInput" placeholder="Enter Company Name" class="w-full p-4 border rounded-lg mb-4 text-center text-xl focus:ring-2 focus:ring-blue-500 outline-none">
-            <button onclick="startWorkshop()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-lg hover:bg-blue-700 transition">START WORKSHOP</button>
+    <div id="landingPage" class="flex flex-col items-center justify-center min-h-screen p-4">
+        <div class="bg-white p-10 rounded-3xl shadow-2xl border w-full max-w-lg text-center">
+            <h1 class="text-4xl font-extrabold mb-4 text-slate-900">The Mirror Sales Canvas</h1>
+            <p class="text-slate-500 mb-8">Discover your journey, design your pipeline.</p>
+            <input type="text" id="companyInput" placeholder="Enter Company Name" 
+                class="w-full p-5 border-2 border-slate-200 rounded-2xl mb-6 text-center text-2xl font-semibold focus:border-blue-500 outline-none transition-all">
+            <button onclick="startWorkshop()" 
+                class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl text-xl hover:bg-blue-700 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-blue-200">
+                START WORKSHOP
+            </button>
         </div>
     </div>
 
-    <div id="mainCanvas" class="hidden-section p-6">
-        <header class="flex justify-between items-center mb-8 bg-white p-4 rounded-xl shadow-sm border sticky top-4 z-40">
+    <div id="mainCanvas" class="hidden p-6">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border sticky top-4 z-40 gap-4">
             <div>
-                <h2 id="displayCompanyName" class="text-2xl font-bold text-slate-800"></h2>
-                <p id="lockStatus" class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Draft Mode</p>
+                <h2 id="displayCompanyName" class="text-3xl font-black text-slate-900"></h2>
+                <div id="statusBadge" class="inline-block mt-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-widest">
+                    Step 1: Buyer's Journey
+                </div>
             </div>
-            <div class="flex space-x-3">
-                <button onclick="toggleEdit()" id="editBtn" class="hidden-section bg-amber-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-amber-600">Edit Form</button>
-                <button onclick="saveAndNext()" id="nextBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">Save & Next</button>
-                <button onclick="downloadPDF()" id="pdfBtn" class="hidden-section bg-slate-800 text-white px-6 py-2 rounded-lg font-semibold">Download PDF</button>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleEdit()" id="editBtn" class="hidden bg-amber-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-amber-600 transition">Edit Form</button>
+                <button onclick="saveAndNext()" id="nextBtn" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition">Save & Next</button>
+                <button onclick="downloadPDF()" id="pdfBtn" class="hidden bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-black transition">Download PDF</button>
             </div>
         </header>
 
-        <div id="captureArea" class="flex flex-col space-y-8 p-4">
-            <div class="flex overflow-x-auto space-x-6 pb-4">
+        <div id="captureArea" class="space-y-12">
+            <div class="flex overflow-x-auto pb-6 space-x-6 scroll-smooth">
                 <div id="journeyGrid" class="flex space-x-6"></div>
             </div>
 
-            <div id="capacitySection" class="hidden-section bg-white p-8 rounded-2xl border shadow-sm">
-                <h3 class="text-xl font-bold mb-6">3. Capacity & Capability Assessment</h3>
-                <div class="grid grid-cols-2 gap-8">
-                    <div>
-                        <label class="block font-bold text-green-700 mb-2 underline">Strengths</label>
-                        <textarea id="strengths" class="w-full p-4 border rounded-xl h-32"></textarea>
+            <div id="capacitySection" class="hidden bg-white p-10 rounded-3xl border-2 border-slate-200 shadow-xl">
+                <h3 class="text-2xl font-black mb-8 text-slate-800">3. Capacity & Capability Assessment</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="space-y-4">
+                        <label class="block font-black text-green-700 text-sm uppercase tracking-wider italic">Where are you strong?</label>
+                        <textarea id="strengths" class="w-full p-5 border-2 border-slate-100 rounded-2xl h-40 focus:border-green-500 outline-none bg-green-50/30"></textarea>
                     </div>
-                    <div>
-                        <label class="block font-bold text-red-700 mb-2 underline">Weaknesses</label>
-                        <textarea id="weaknesses" class="w-full p-4 border rounded-xl h-32"></textarea>
+                    <div class="space-y-4">
+                        <label class="block font-black text-red-700 text-sm uppercase tracking-wider italic">Where are you weak?</label>
+                        <textarea id="weaknesses" class="w-full p-5 border-2 border-slate-100 rounded-2xl h-40 focus:border-red-500 outline-none bg-red-50/30"></textarea>
                     </div>
                 </div>
             </div>
@@ -66,61 +75,84 @@
         const STAGES = ["Awareness", "Discovery", "Considering", "Testing", "Evaluating", "Purchasing"];
         const PIPELINE = ["Marketing", "Prospecting", "Qualifying", "Proposing", "Closing", "Signing"];
         let currentStep = 1;
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxow8MnWbVc_ypKwLswHlRYjD_SqoRkiphvaCTvTI9pG1Z5xMvhm7aWZSjVWsiK0yL8/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwko374l2QCzm9WFvKqviFqzgWh-337x0v4kBOLv2AsQ1-SbOC2u247VN1Ba0YIBP4R/exec'; // <--- REPLACE THIS
 
         function initGrid() {
             const grid = document.getElementById('journeyGrid');
-            grid.innerHTML = ''; 
+            grid.innerHTML = '';
             STAGES.forEach((stage, i) => {
                 const num = i + 1;
                 grid.innerHTML += `
-                    <div class="canvas-col flex flex-col space-y-4">
-                        <div class="bg-slate-800 text-white p-3 rounded-lg text-center font-bold text-sm uppercase">${num}. ${stage}</div>
-                        <div id="buyer_card_${num}" class="bg-blue-50 border border-blue-200 p-5 rounded-xl">
-                            <h4 class="text-blue-700 font-bold text-xs uppercase mb-3">Buyer's Journey</h4>
-                            <label class="block text-xs font-bold mb-1">Goal</label>
-                            <input type="text" id="b_goal_${num}" class="w-full p-2 border rounded mb-3 text-sm">
-                            <label class="block text-xs font-bold mb-1">Top Questions</label>
-                            <textarea id="b_ques_${num}" class="w-full p-2 border rounded text-sm h-20"></textarea>
+                    <div class="canvas-col flex flex-col space-y-6">
+                        <div class="bg-slate-900 text-white p-4 rounded-2xl text-center font-black text-sm uppercase tracking-tighter">${num}. ${stage}</div>
+                        
+                        <div class="bg-blue-50 border-2 border-blue-100 p-6 rounded-3xl shadow-sm space-y-4">
+                            <h4 class="text-blue-600 font-black text-[10px] uppercase tracking-[0.2em]">The Buyer's Journey</h4>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">What is their goal?</label>
+                                <input type="text" id="b_goal_${num}" class="w-full p-3 border rounded-xl text-sm focus:ring-2 focus:ring-blue-400 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Key Questions</label>
+                                <textarea id="b_ques_${num}" oninput="mirrorQues(${num}, this.value)" class="w-full p-3 border rounded-xl text-sm h-24 focus:ring-2 focus:ring-blue-400 outline-none"></textarea>
+                            </div>
                         </div>
-                        <div id="sales_card_${num}" class="hidden-section bg-green-50 border border-green-200 p-5 rounded-xl">
-                            <h4 class="text-green-700 font-bold text-xs uppercase mb-3">Sales (${PIPELINE[i]})</h4>
-                            <label class="block text-xs font-bold mb-1">Internal KPI</label>
-                            <input type="text" id="s_kpi_${num}" class="w-full p-2 border rounded mb-3 text-sm">
-                            <label class="block text-xs font-bold mb-1">Support Activity</label>
-                            <textarea id="s_act_${num}" class="w-full p-2 border rounded text-sm h-20"></textarea>
+
+                        <div id="sales_card_${num}" class="hidden bg-green-50 border-2 border-green-100 p-6 rounded-3xl shadow-sm space-y-4">
+                            <h4 class="text-green-600 font-black text-[10px] uppercase tracking-[0.2em]">The Sales Pipeline (${PIPELINE[i]})</h4>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Internal KPI</label>
+                                <input type="text" id="s_kpi_${num}" class="w-full p-3 border rounded-xl text-sm focus:ring-2 focus:ring-green-400 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">How do we answer <span class="stage-${num}-recall italic text-blue-600 font-bold">these questions</span>?</label>
+                                <textarea id="s_act_${num}" class="w-full p-3 border rounded-xl text-sm h-24 focus:ring-2 focus:ring-green-400 outline-none"></textarea>
+                            </div>
                         </div>
                     </div>`;
             });
         }
 
+        function mirrorQues(id, val) {
+            const el = document.querySelector(`.stage-${id}-recall`);
+            el.innerText = val ? `"${val.substring(0,25)}..."` : "these questions";
+        }
+
         async function startWorkshop() {
-            const name = document.getElementById('companyInput').value;
-            if(!name) return alert("Enter company name");
+            const name = document.getElementById('companyInput').value.trim();
+            if(!name) return alert("Please enter a Company Name");
+            
+            document.body.classList.add('is-loading');
             document.getElementById('displayCompanyName').innerText = name;
-            document.getElementById('landingPage').style.display = 'none';
-            document.getElementById('mainCanvas').style.display = 'block';
+            
+            // UI Switch
+            document.getElementById('landingPage').classList.add('hidden');
+            document.getElementById('mainCanvas').classList.remove('hidden');
             initGrid();
+            
+            await syncToSheets();
+            document.body.classList.remove('is-loading');
         }
 
         async function saveAndNext() {
-            showLoader(true);
+            document.body.classList.add('is-loading');
             await syncToSheets();
-            
+
             if (currentStep === 1) {
-                document.querySelectorAll('[id^="sales_card_"]').forEach(el => el.style.display = 'block');
+                document.querySelectorAll('[id^="sales_card_"]').forEach(el => el.classList.remove('hidden'));
+                document.getElementById('statusBadge').innerText = "Step 2: Sales Pipeline";
+                document.getElementById('statusBadge').className = "inline-block mt-2 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold uppercase tracking-widest";
                 currentStep = 2;
             } else if (currentStep === 2) {
-                document.getElementById('capacitySection').style.display = 'block';
+                document.getElementById('capacitySection').classList.remove('hidden');
+                document.getElementById('statusBadge').innerText = "Step 3: Capacity Assessment";
+                document.getElementById('statusBadge').className = "inline-block mt-2 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase tracking-widest";
                 document.getElementById('nextBtn').innerText = "Save & Complete";
                 currentStep = 3;
             } else {
-                lockForm(true);
-                document.getElementById('nextBtn').style.display = 'none';
-                document.getElementById('pdfBtn').style.display = 'block';
-                document.getElementById('editBtn').style.display = 'block';
+                completeWorkshop();
             }
-            showLoader(false);
+            document.body.classList.remove('is-loading');
         }
 
         async function syncToSheets() {
@@ -128,37 +160,39 @@
             document.querySelectorAll('input, textarea').forEach(el => { if(el.id) data[el.id] = el.value; });
             try {
                 await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-            } catch (e) { console.error("Save failed", e); }
+            } catch (e) { console.error("Sync Error", e); }
         }
 
-        function lockForm(shouldLock) {
-            document.querySelectorAll('input, textarea').forEach(el => el.disabled = shouldLock);
-            document.getElementById('lockStatus').innerText = shouldLock ? "Locked / View Only" : "Draft Mode (Editing)";
-            document.getElementById('lockStatus').className = shouldLock ? "text-xs font-bold text-red-500 uppercase tracking-widest mt-1" : "text-xs font-bold text-blue-500 uppercase tracking-widest mt-1";
+        function completeWorkshop() {
+            lockForm(true);
+            document.getElementById('nextBtn').classList.add('hidden');
+            document.getElementById('pdfBtn').classList.remove('hidden');
+            document.getElementById('editBtn').classList.remove('hidden');
+            document.getElementById('statusBadge').innerText = "Strategy Locked";
+            document.getElementById('statusBadge').className = "inline-block mt-2 px-3 py-1 rounded-full bg-slate-900 text-white text-xs font-bold uppercase tracking-widest";
+        }
+
+        function lockForm(lock) {
+            document.querySelectorAll('input, textarea').forEach(el => el.disabled = lock);
         }
 
         function toggleEdit() {
             lockForm(false);
-            document.getElementById('nextBtn').style.display = 'block';
-            document.getElementById('editBtn').style.display = 'none';
-        }
-
-        function showLoader(show) {
-            document.getElementById('loaderOverlay').style.display = show ? 'flex' : 'none';
+            document.getElementById('nextBtn').classList.remove('hidden');
+            document.getElementById('editBtn').classList.add('hidden');
         }
 
         function downloadPDF() {
             const { jsPDF } = window.jspdf;
-            html2canvas(document.querySelector("#captureArea")).then(canvas => {
+            html2canvas(document.querySelector("#captureArea"), { scale: 2 }).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
                 const doc = new jsPDF('l', 'mm', 'a4');
                 const width = doc.internal.pageSize.getWidth();
                 const height = (canvas.height * width) / canvas.width;
                 doc.addImage(imgData, 'PNG', 0, 0, width, height);
-                doc.save("Mirror_Sales_Canvas.pdf");
+                doc.save(`${document.getElementById('companyInput').value}_MirrorCanvas.pdf`);
             });
         }
     </script>
 </body>
 </html>
-
