@@ -145,43 +145,67 @@
         function downloadPDF() {
     const { jsPDF } = window.jspdf;
     const element = document.querySelector("#captureArea");
-    
-    // showLoader(true); // Optional: show loader while generating
+    const companyName = document.getElementById('companyInput').value || "Mirror_Canvas";
 
-    // html2canvas captures the full element regardless of screen scroll
-    html2canvas(element, { 
-        scale: 2, // Higher scale for better text clarity
+    toggleLoader(true); // Show loader while we crunch the pixels
+
+    html2canvas(element, {
+        scale: 2, // Keeps text crisp
         useCORS: true,
-        logging: false,
-        windowWidth: element.scrollWidth, // Forces capture of the full horizontal width
-        windowHeight: element.scrollHeight
+        allowTaint: true,
+        // The Magic Part:
+        onclone: (clonedDoc) => {
+            // 1. Find the horizontal scroll container in the phantom copy
+            const scrollContainer = clonedDoc.querySelector('.overflow-x-auto');
+            const grid = clonedDoc.getElementById('journeyGrid');
+
+            if (scrollContainer && grid) {
+                // 2. Remove the scroll restriction and force the container 
+                // to be as wide as the internal grid
+                scrollContainer.style.overflow = 'visible';
+                scrollContainer.style.width = 'auto';
+                scrollContainer.style.display = 'block';
+                
+                // 3. Force a specific width for the grid to ensure all 6 columns breathe
+                // 6 columns * 400px + gaps = approx 2600px
+                grid.style.width = '2600px'; 
+                grid.style.display = 'flex';
+                grid.style.flexWrap = 'nowrap';
+            }
+            
+            // 4. Ensure the capacity section is also expanded
+            const capSection = clonedDoc.getElementById('capacitySection');
+            if (capSection) {
+                capSection.style.width = '2600px';
+            }
+        }
     }).then(canvas => {
         const imgData = canvas.toDataURL('image/png');
         
-        // 'l' = landscape, 'mm' = millimeters, 'a3' = A3 size
+        // Create A3 Landscape PDF
         const doc = new jsPDF('l', 'mm', 'a3');
         
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         
-        // Calculate dimensions to fit the full width of A3
+        // Calculate aspect ratio
         const imgWidth = pageWidth;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-        // If the height exceeds one page, it will scale to fit width
+        // Add the image
         doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        doc.save(`${companyName}_Mirror_Canvas_A3.pdf`);
         
-        const fileName = document.getElementById('companyInput').value || "Mirror_Canvas";
-        doc.save(`${fileName}_Mirror_Canvas_A3.pdf`);
-        
-        // showLoader(false);
+        toggleLoader(false);
     }).catch(err => {
-        console.error("PDF Export Error:", err);
-        // showLoader(false);
+        console.error("PDF Error:", err);
+        toggleLoader(false);
+        alert("PDF failed to generate. Check console for details.");
     });
 }
     </script>
 </body>
 </html>
+
 
 
